@@ -12,7 +12,7 @@ dist/
 *.spec
 
 # 忽略日誌文件
-logs/
+logs/*.log
 *.log
 
 # 忽略系統文件
