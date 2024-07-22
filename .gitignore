@@ -9,7 +9,6 @@ __pycache__/
 build/
 dist/
 *.egg-info/
-*.spec
 
 # 忽略日誌文件
 logs/*.log
