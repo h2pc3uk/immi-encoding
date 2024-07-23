@@ -28,6 +28,7 @@ log_file = os.path.join(LOG_DIR, f'app_log_{current_time}.txt')
 logging.basicConfig(filename=log_file, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def detect_encoding(file_path):
+    # 偵測檔案的編碼
     with open(file_path, 'rb') as file:
         raw_data = file.read()
     result = chardet.detect(raw_data)
@@ -35,6 +36,7 @@ def detect_encoding(file_path):
     return result['encoding']
 
 def read_file(file_path):
+    # 讀取檔案內容，並使用偵測到的編碼
     detected_encoding = detect_encoding(file_path)
     try:
         with open(file_path, 'r', encoding=detected_encoding) as file:
@@ -46,6 +48,7 @@ def read_file(file_path):
         return None
 
 def convert_to_big5(content):
+    # 將內容轉換為 BIG5 編碼
     try:
         big5_content = content.encode('big5', errors='replace')
         logging.debug(f'轉換為 Big5 編碼，長度：{len(big5_content)} 位元組')
@@ -55,6 +58,7 @@ def convert_to_big5(content):
         return None
 
 def write_big5_file(file_path, content):
+    # 將 BIG5 編碼的內容寫入檔案
     try:
         with open(file_path, 'wb') as file:
             file.write(content)
@@ -63,6 +67,7 @@ def write_big5_file(file_path, content):
         logging.error(f'寫入檔案 {file_path} 時發生錯誤：{e}')
 
 def verify_big5_file(file_path):
+    # 驗證檔案是否正確寫入 BIG5 編碼
     try:
         with open(file_path, 'rb') as file:
             content = file.read().decode('big5')
@@ -74,6 +79,7 @@ def verify_big5_file(file_path):
         logging.error(f"讀取檔案 {file_path} 時發生錯誤：{e}")
 
 def process_punish_file(content):
+    # 處理特殊的 Punish 文件內容
     lines = content.split('\n')
     # 移除第一行
     if lines:
@@ -89,6 +95,7 @@ def process_punish_file(content):
     return '\n'.join(lines)
 
 def process_file(file_path, output_dir=None):
+    # 處理檔案，讀取、轉換並寫入
     content = read_file(file_path)
     if content is None:
         return None
@@ -118,6 +125,7 @@ def process_file(file_path, output_dir=None):
     return output_path
 
 def select_files():
+    # 使用 tkinter 選擇檔案
     logging.debug("進入 select_files 函數")
     root = tk.Tk()
     root.withdraw()  # 隱藏主窗口
@@ -126,6 +134,7 @@ def select_files():
     return files
 
 def main():
+    # 主函數，處理命令行參數並進行轉換
     logging.debug("進入 main 函數")
     parser = argparse.ArgumentParser(description='將檔案轉換為 Big5 編碼。')
     parser.add_argument('files', nargs='*', help='要轉換的輸入檔案')
