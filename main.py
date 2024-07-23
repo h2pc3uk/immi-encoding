@@ -73,12 +73,31 @@ def verify_big5_file(file_path):
     except Exception as e:
         logging.error(f"讀取檔案 {file_path} 時發生錯誤：{e}")
 
+def process_punish_file(content):
+    lines = content.split('\n')
+    # 移除第一行
+    if lines:
+        lines = lines[1:]
+    
+    # 從末尾開始移除空行和 '@@'行
+    while lines and (not lines[-1].strip() or lines[-1].strip() == '@@'):
+        lines.pop()
+
+    # 移除中間的空行
+    lines = [line for line in lines if line.strip()]
+
+    return '\n'.join(lines)
+
 def process_file(file_path, output_dir=None):
     content = read_file(file_path)
     if content is None:
         return None
 
     logging.debug(f'原始內容預覽：\n{content[:100]}...')
+
+    if'Punish-' in os.path.basename(file_path):
+        content = process_punish_file(content)
+        logging.debug(f'處理後的 Punish 文件內容預覽：\n{content[:100]}...')
 
     big5_content = convert_to_big5(content)
     if big5_content is None:
