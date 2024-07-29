@@ -1,11 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import chardet
+
+chardet_path = os.path.dirname(chardet.__file__)
+
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('logs', 'logs'), ('/Users/hpochang/immi_data_processor/venv/lib/python3.12/site-packages/chardet', 'chardet')],
-    hiddenimports=['chardet'],  # 添加此行以包含 chardet 模組
+    datas=[('logs', 'logs'), (chardet_path, 'chardet')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
