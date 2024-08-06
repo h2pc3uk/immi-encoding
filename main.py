@@ -94,6 +94,35 @@ def process_punish_file(content):
 
     return '\n'.join(lines)
 
+def process_special_file(content, file_type):
+    """
+    處理特殊類型的文件(Punish, Fled, Immi)
+    此函數會移除文件的第一行和最後一行(包括 '@@' 行)
+    同時也會移除空白行
+
+    :param content: 原始文件內容
+    :param file_type: 文件類型 ('Punish', 'Fled', 'Immi')
+    :return: 處理後的文件內容
+    """
+
+    lines = content.split('\n')
+
+    # 移除最後一行
+    if lines:
+        lines = lines[1:]
+    
+    # 從末尾開始移除空行和 '@@' 行
+    while lines and (not lines[-1].strip() or lines[-1].strip() == '@@'):
+        lines.pop()
+    
+    # 移除中間空行
+    lines = [line for line in lines if line.strip()]
+
+    logging.debug(f'處理 {file_type} 文件: 移除了 {len(content.split()) - len(lines)} 行')
+
+    return '\n'.join(lines)
+
+
 def process_file(file_path, output_dir=None):
     # 處理檔案，讀取、轉換並寫入
     content = read_file(file_path)
@@ -102,20 +131,27 @@ def process_file(file_path, output_dir=None):
 
     logging.debug(f'原始內容預覽：\n{content[:100]}...')
 
-    if'Punish-' in os.path.basename(file_path):
-        content = process_punish_file(content)
-        logging.debug(f'處理後的 Punish 文件內容預覽：\n{content[:100]}...')
+    # 檢查文件類型
+    file_name = os.path.basename(file_path)
+    if any(prefix in file_name for prefix in ['Punish-', 'Fled', 'Immi-']):
+        file_type = next(prefix.rstrip('-') for prefix in ['Punish-', 'Fled-', 'Immi-'] if prefix in file_name)
+        content = process_special_file(content, file_type)
+        logging.debug(f'處理後的 {file_type} 文件內容預覽: \n{content[:100]}...')
+        logging.debug(f'處理後的 {file_type} 文件最後幾行: \n{content[-100]}')
 
     big5_content = convert_to_big5(content)
     if big5_content is None:
         return None
     
-    if output_dir:
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        output_path = os.path.join(output_dir, os.path.basename(file_path))
-    else:
-        output_path = os.path.splitext(file_path)[0] + '_BIG5.txt'
+    # 創建 'modified' 資料夾
+    original_dir = os.path.dirname(file_path)
+    modified_dir = os.path.join(original_dir, 'modified')
+    if not os.path.exists(modified_dir):
+        os.makedirs(modified_dir)
+        logging.debug(f'創建新資料夾:{modified_dir}')
+
+    # 使用原始文件名
+    output_path = os.path.join(modified_dir, file_name)
 
     write_big5_file(output_path, big5_content)
 
@@ -138,7 +174,6 @@ def main():
     logging.debug("進入 main 函數")
     parser = argparse.ArgumentParser(description='將檔案轉換為 Big5 編碼。')
     parser.add_argument('files', nargs='*', help='要轉換的輸入檔案')
-    parser.add_argument('-o', '--output', help='輸出目錄（可選）')
     args = parser.parse_args()
 
     logging.debug(f"命令行參數: {args}")
